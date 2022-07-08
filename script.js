@@ -13,10 +13,43 @@ const offset = {
   y: -370,
 };
 
+const battleOffset = {
+  playerSide: {
+    x: -180,
+    y: 50,
+  },
+
+  enemySide: {
+    x: 0,
+    y: 0,
+  },
+};
+
 collisionsMap.forEach((row, rowIdx) => {
   row.forEach((symbol, symbolIdx) => {
     if (symbol === 1025) {
       boundaries.push(
+        new Boundary({
+          position: {
+            x: symbolIdx * Boundary.width + offset.x,
+            y: rowIdx * Boundary.height + offset.y,
+          },
+        })
+      );
+    }
+  });
+});
+
+let battleZonesMap = [];
+for (let i = 0; i < battleZones.length; i += 70) {
+  battleZonesMap.push(battleZones.slice(i, i + 70));
+}
+
+const battle = [];
+battleZonesMap.forEach((row, rowIdx) => {
+  row.forEach((symbol, symbolIdx) => {
+    if (symbol !== 0) {
+      battle.push(
         new Boundary({
           position: {
             x: symbolIdx * Boundary.width + offset.x,
@@ -41,13 +74,13 @@ const image = new Image();
 image.src = "./images/pokemonMap.png";
 
 const playerDownImage = new Image();
-playerDownImage.src = "./images/playerDown.png";
+playerDownImage.src = "./images/player/playerDown.png";
 const playerUpImage = new Image();
-playerUpImage.src = "./images/playerUp.png";
+playerUpImage.src = "./images/player/playerUp.png";
 const playerLeftImage = new Image();
-playerLeftImage.src = "./images/playerLeft.png";
+playerLeftImage.src = "./images/player/playerLeft.png";
 const playerRightImage = new Image();
-playerRightImage.src = "./images/playerRight.png";
+playerRightImage.src = "./images/player/playerRight.png";
 
 const foregroundImg = new Image();
 foregroundImg.src = "./images/foregroundObjects.png";
@@ -63,6 +96,7 @@ const player = new Sprite({
   image: playerDownImage,
   frames: {
     max: 4,
+    hold: 10,
   },
   sprites: {
     up: playerUpImage,
@@ -103,7 +137,7 @@ const keys = {
   },
 };
 
-const movables = [background, foreground, ...boundaries];
+const movables = [background, foreground, ...boundaries, ...battle];
 
 const rectangularCollision = ({ rect1, rect2 }) => {
   return (
@@ -115,20 +149,93 @@ const rectangularCollision = ({ rect1, rect2 }) => {
   );
 };
 
+const pokemonBattle = {
+  initiated: false,
+};
+
 const animate = () => {
-  window.requestAnimationFrame(animate);
+  const animationId = window.requestAnimationFrame(animate);
   background.draw();
   boundaries.forEach((boundary) => {
     boundary.draw();
+  });
+  battle.forEach((battleSquare) => {
+    battleSquare.draw();
   });
   player.draw();
   foreground.draw();
 
   let moving = true;
-  player.moving = false;
+  player.animate = false;
+
+  if (pokemonBattle.initiated) return;
+  //ACTIVATE BATTLE
+  if (keys.w.pressed || keys.a.pressed || keys.s.pressed || keys.d.pressed) {
+    for (let i = 0; i < battle.length; i++) {
+      const battleSquare = battle[i];
+      const overlappingArea =
+        (Math.min(
+          player.position.x + player.width,
+          battleSquare.position.x + battleSquare.width
+        ) -
+          Math.max(player.position.x, battleSquare.position.x)) *
+        (Math.min(
+          player.position.y + player.height,
+          battleSquare.position.y + battleSquare.height
+        ) -
+          Math.max(player.position.y, battleSquare.position.y));
+
+      if (
+        rectangularCollision({
+          rect1: player,
+          rect2: battleSquare,
+        }) &&
+        overlappingArea > (player.width * player.height) / 2
+      ) {
+        if (Math.random() < 0.05) {
+          //Initiate Battle
+          pokemonBattle.initiated = true;
+
+          // deactivate current loop
+          window.cancelAnimationFrame(animationId);
+
+          //Change screen animation
+          gsap.to("#overlap", {
+            opacity: 1,
+            repeat: 3,
+            yoyo: true,
+            duration: 0.4,
+            onComplete() {
+              gsap.to("#overlap", {
+                opacity: 1,
+                duration: 0.4,
+                onComplete() {
+                  //Activate new animation loop
+
+                  gsap.to(".attack-grid", {
+                    opacity: 1,
+                  });
+
+                  gsap.to(".battle-box__container", {
+                    opacity: 1,
+                  });
+                  animateBattle();
+                  gsap.to("#overlap", {
+                    opacity: 0,
+                    duration: 0.4,
+                  });
+                },
+              });
+            },
+          });
+        }
+        break;
+      }
+    }
+  }
 
   if (keys.w.pressed && lastKey === "w") {
-    player.moving = true;
+    player.animate = true;
     player.image = player.sprites.up;
     for (let i = 0; i < boundaries.length; i++) {
       const boundary = boundaries[i];
@@ -148,9 +255,10 @@ const animate = () => {
         break;
       }
     }
+
     if (moving) movables.forEach((movable) => (movable.position.y += 3));
   } else if (keys.s.pressed && lastKey === "s") {
-    player.moving = true;
+    player.animate = true;
     player.image = player.sprites.down;
     for (let i = 0; i < boundaries.length; i++) {
       const boundary = boundaries[i];
@@ -172,7 +280,7 @@ const animate = () => {
     }
     if (moving) movables.forEach((movable) => (movable.position.y -= 3));
   } else if (keys.a.pressed && lastKey === "a") {
-    player.moving = true;
+    player.animate = true;
     player.image = player.sprites.left;
     for (let i = 0; i < boundaries.length; i++) {
       const boundary = boundaries[i];
@@ -194,7 +302,7 @@ const animate = () => {
     }
     if (moving) movables.forEach((movable) => (movable.position.x += 3));
   } else if (keys.d.pressed && lastKey === "d") {
-    player.moving = true;
+    player.animate = true;
     player.image = player.sprites.right;
     for (let i = 0; i < boundaries.length; i++) {
       const boundary = boundaries[i];
@@ -204,7 +312,7 @@ const animate = () => {
           rect2: {
             ...boundary,
             position: {
-              x: boundary.position.x - 3,
+              x: boundary.position.x,
               y: boundary.position.y,
             },
           },
@@ -218,7 +326,131 @@ const animate = () => {
   }
 };
 
-animate();
+// animate();
+
+const battleBackgroundImage = new Image();
+battleBackgroundImage.src = "./images/Battle/battleBackground.png";
+
+const battleBackground = new Sprite({
+  position: {
+    x: 0,
+    y: 0,
+  },
+  image: battleBackgroundImage,
+});
+
+const draggleImage = new Image();
+draggleImage.src = "./images/Battle/monsters/draggleSprite.png";
+
+const embyImage = new Image();
+embyImage.src = "./images/Battle/monsters/embySprite.png";
+
+const playerPosition = {
+  x: 320,
+  y: 320,
+};
+
+const enemyPosition = {
+  x: 790,
+  y: 100,
+};
+
+const draggle = new Sprite({
+  name: "Draggle",
+  position: {
+    x: 0,
+    y: 0,
+  },
+  image: draggleImage,
+  frames: {
+    max: 4,
+    hold: 30,
+  },
+  animate: true,
+});
+
+const emby = new Sprite({
+  name: "Emby",
+  position: {
+    x: 0,
+    y: 0,
+  },
+  image: embyImage,
+  frames: {
+    max: 4,
+    hold: 10,
+  },
+  animate: true,
+});
+
+const playerPokemon = draggle;
+const enemyPokemon = emby;
+
+playerPokemon.position = {
+  x: playerPosition.x,
+  y: playerPosition.y,
+};
+enemyPokemon.isEnemy = true;
+
+enemyPokemon.position = {
+  x: enemyPosition.x,
+  y: enemyPosition.y,
+};
+
+const renderedSprites = [playerPokemon, enemyPokemon];
+
+const animateBattle = () => {
+  const battleFrameId = window.requestAnimationFrame(animateBattle);
+  battleBackground.draw();
+  renderedSprites.forEach((sprite) => {
+    sprite.draw();
+  });
+
+  if (enemyPokemon.health <= 0) {
+    console.log("enemy dead");
+    window.cancelAnimationFrame(battleFrameId);
+    gsap.to(enemyPokemon, {
+      opacity: 0,
+      duration: 0.3,
+      onComplete: () => {
+        gsap.to(".attack-grid", {
+          opacity: 0,
+        });
+
+        gsap.to(".battle-box__container", {
+          opacity: 0,
+        });
+
+        pokemonBattle.initiated = false;
+        // animate();
+      },
+    });
+  }
+
+  if (playerPokemon.health <= 0) {
+    console.log("Player dead");
+    playerPokemon.opacity = 0;
+  }
+};
+
+animateBattle();
+
+const attack = document.querySelectorAll(".attack");
+attack.forEach((item) => {
+  item.addEventListener("click", (e) => {
+    playerPokemon.attack({
+      attack: attacks[e.target.id],
+      recipient: enemyPokemon,
+      renderedSprites,
+    });
+
+    // enemyPokemon.attack({
+    //   attack: attacks[e.target.id],
+    //   recipient: playerPokemon,
+    //   renderedSprites,
+    // });
+  });
+});
 
 let lastKey = "";
 window.addEventListener("keydown", (e) => {

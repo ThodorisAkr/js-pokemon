@@ -1,0 +1,126 @@
+* {
+  font-family: "Press Start 2P", cursive;
+  box-sizing: border-box;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
+  padding: 0;
+}
+body {
+  background-color: black;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.canvas-overlay {
+  background-color: black;
+  opacity: 0;
+
+  position: absolute;
+  pointer-events: none;
+  width: 100%;
+  height: 100%;
+}
+
+.attack-grid {
+  background-color: white;
+  border-top: 2px solid black;
+  position: absolute;
+  width: 100%;
+  height: 150px;
+  bottom: 0;
+
+  display: flex;
+  align-items: center;
+  opacity: 1;
+}
+
+.battle-dialog {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  background-color: white;
+  display: none;
+
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+}
+
+.attacks {
+  height: 100%;
+  flex: 3;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  border-right: 2px solid black;
+}
+
+.attack {
+  display: block;
+  border-width: 1px;
+  font-size: 16px;
+}
+.attack:hover {
+  background-color: rgb(168, 168, 168);
+  cursor: pointer;
+}
+.type {
+  flex: 1;
+}
+
+.battle-box__container {
+  position: absolute;
+  opacity: 1;
+  top: 0;
+  width: 100%;
+  height: calc(100% - 150px);
+}
+
+.battle-box {
+  position: absolute;
+  height: 90px;
+  width: 40%;
+  background-color: white;
+  border-radius: 20px;
+  border: 2px solid black;
+  padding: 20px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.battle-box.enemy {
+  top: 20px;
+  left: 20px;
+}
+
+.battle-box.player {
+  bottom: 20px;
+
+  right: 20px;
+}
+
+.health-bar {
+  width: 100%;
+  height: 5px;
+  background-color: red;
+}
+
+.health-count {
+  height: 100%;
+  width: 100%;
+  background-color: green;
+}
