@@ -1,15 +1,12 @@
 class Sprite {
   constructor({
-    name = "",
     position,
     image,
     frames = { max: 1, hold: 7 },
     sprites,
     animate = false,
-    isEnemy = false,
     rotation = 0,
   }) {
-    this.name = name;
     this.position = position;
     this.image = image;
     this.frames = { ...frames, val: 0, elapsed: 0 };
@@ -22,8 +19,6 @@ class Sprite {
     this.animate = animate;
     this.sprites = sprites;
     this.opacity = 1;
-    this.health = 100;
-    this.isEnemy = isEnemy;
     this.rotation = rotation;
   }
 
@@ -62,26 +57,42 @@ class Sprite {
       else this.frames.val = 0;
     }
   }
+}
+
+class Monster extends Sprite {
+  constructor({
+    position,
+    image,
+    frames = { max: 1, hold: 7 },
+    sprites,
+    animate = false,
+    rotation = 0,
+    name = "",
+    isEnemy = false,
+    attacks,
+  }) {
+    super({
+      position,
+      image,
+      frames,
+      sprites,
+      animate,
+      rotation,
+    });
+    this.name = name;
+    this.isEnemy = isEnemy;
+    this.health = 100;
+    this.attacks = attacks;
+  }
 
   attack({ attack, recipient, renderedSprites }) {
-    const attackTypeEl = document.querySelector(".attack-grid .type");
     const battleDialogEl = document.querySelector("#battleDialogBox");
-    attackTypeEl.innerHTML = attack.type;
     battleDialogEl.innerHTML = `<p>${this.name} used <span style="color: ${
       attack.color
     }">${attack.name}</span> for <span style="color: ${
       attack.color
     }">${parseInt(attack.damage)}</span> damage!`;
-
-    gsap.to(battleDialogEl, {
-      display: "flex",
-      duration: 0.66,
-      yoyo: true,
-      repeat: 3,
-      onComplete() {
-        console.log("complete");
-      },
-    });
+    battleDialogEl.style.display = "flex";
 
     let healthCount = "enemyHealthCount";
     if (this.isEnemy) {
@@ -90,11 +101,9 @@ class Sprite {
 
     switch (attack.name) {
       case "Tackle":
-        attackTypeEl.style.color = "black";
         this.tackle({ attack, recipient, healthCount });
         break;
       case "Fireball":
-        attackTypeEl.style.color = "red";
         this.fireball({ attack, recipient, healthCount, renderedSprites });
         break;
     }

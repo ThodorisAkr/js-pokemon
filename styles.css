@@ -40,7 +40,7 @@ body {
 
   display: flex;
   align-items: center;
-  opacity: 1;
+  opacity: 0;
 }
 
 .battle-dialog {
@@ -52,6 +52,11 @@ body {
 
   justify-content: center;
   align-items: center;
+  cursor: pointer;
+}
+
+.battle-dialog:hover {
+  background-color: #b9b9b9;
 }
 
 .flex-center {
@@ -82,7 +87,7 @@ body {
 
 .battle-box__container {
   position: absolute;
-  opacity: 1;
+  opacity: 0;
   top: 0;
   width: 100%;
   height: calc(100% - 150px);

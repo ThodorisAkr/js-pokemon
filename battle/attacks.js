@@ -1,3 +1,12 @@
+const generalAttacks = {
+  run: {
+    name: "Run",
+    damage: 0,
+    type: "Run",
+    color: "black",
+  },
+};
+
 const attacks = {
   tackle: {
     name: "Tackle",
