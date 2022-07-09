@@ -36,59 +36,35 @@ enemyPokemon.position = {
   y: enemyPosition.y,
 };
 
-const renderedSprites = [playerPokemon, enemyPokemon];
+let renderedSprites = [];
 
-playerPokemon.attacks.forEach((item) => {
-  const button = document.createElement("button");
-  button.classList.add("attack");
-  button.classList.add("flex-center");
-  button.innerHTML = item.name;
-  button.id = item.name.toLowerCase();
-  document.querySelector("#attacks-box").append(button);
-});
 
-//   <button id="tackle" class="attack flex-center">TACKLE</button>
-//   <button id="fireball" class="attack flex-center">FIREBALL</button>
+let battleFrameId;
 
-const animateBattle = () => {
-  const battleFrameId = window.requestAnimationFrame(animateBattle);
-  battleBackground.draw();
-  renderedSprites.forEach((sprite) => {
-    sprite.draw();
+let playerPokemon;
+let enemyPokemon;
+let queue;
+
+const initBattle = () => {
+  
+  const draggle = new Monster(monsters.draggle);
+  const emby = new Monster(monsters.emby);
+  playerPokemon = emby;
+  enemyPokemon = draggle;
+  renderedSprites = [playerPokemon, enemyPokemon];
+  queue = [];
+
+  playerPokemon.attacks.forEach((item) => {
+    const button = document.createElement("button");
+    button.classList.add("attack");
+    button.classList.add("flex-center");
+    button.innerHTML = item.name;
+    button.id = item.name.toLowerCase();
+    document.querySelector("#attacks-box").append(button);
   });
 
-  if (enemyPokemon.health <= 0) {
-    console.log("enemy dead");
-    window.cancelAnimationFrame(battleFrameId);
-    gsap.to(enemyPokemon, {
-      opacity: 0,
-      duration: 0.3,
-      onComplete: () => {
-        gsap.to(".attack-grid", {
-          opacity: 0,
-        });
 
-        gsap.to(".battle-box__container", {
-          opacity: 0,
-        });
-
-        pokemonBattle.initiated = false;
-        animate();
-      },
-    });
-  }
-
-  if (playerPokemon.health <= 0) {
-    console.log("Player dead");
-    playerPokemon.opacity = 0;
-  }
-};
-
-// animateBattle();
-
-const queue = [];
-
-const attack = document.querySelectorAll(".attack");
+  const attack = document.querySelectorAll(".attack");
 attack.forEach((item) => {
   item.addEventListener("click", (e) => {
     playerPokemon.attack({
@@ -97,17 +73,41 @@ attack.forEach((item) => {
       renderedSprites,
     });
 
-    const randomAttack =
-      enemyPokemon.attacks[
-        Math.floor(Math.random() * enemyPokemon.attacks.length)
-      ];
+    
+  if (enemyPokemon.health <= 0) {
+    queue.push(() => enemyPokemon.faint());
+    queue.push(()=> {
+      gsap.to("#overlap", {
+        opacity: 1,
+        onComplete: () => {
+          window.cancelAnimationFrame(battleFrameId)
+          animate();
+          gsap.to("#overlap", {
+            opacity: 0,
+          })
+          document.querySelector("#user-interface").style.display = "none";
+          pokemonBattle.initiated = false;
+        }
+      })
+    })
+  }
+
+    let randomAttack = 0;
+    if(Math.random() > 0.66){
+      randomAttack = 1
+    }
 
     queue.push(() => {
       enemyPokemon.attack({
-        attack: randomAttack,
+        attack: enemyPokemon.attacks[randomAttack],
         recipient: playerPokemon,
         renderedSprites,
       });
+
+      if (playerPokemon.health <= 0) {
+        playerPokemon.faint();
+        return
+      }
     });
   });
 
@@ -127,3 +127,16 @@ document.querySelector("#battleDialogBox").addEventListener("click", (e) => {
     queue.shift();
   } else e.currentTarget.style.display = "none";
 });
+}
+const animateBattle = () => {
+  battleFrameId = window.requestAnimationFrame(animateBattle);
+  battleBackground.draw();
+
+  renderedSprites.forEach((sprite) => {
+    sprite.draw();
+  });
+};
+
+
+
+

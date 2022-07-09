@@ -28,6 +28,11 @@ body {
   pointer-events: none;
   width: 100%;
   height: 100%;
+  z-index: 10;
+}
+
+#user-interface{
+  opacity: 0;
 }
 
 .attack-grid {
@@ -40,7 +45,6 @@ body {
 
   display: flex;
   align-items: center;
-  opacity: 0;
 }
 
 .battle-dialog {
@@ -87,7 +91,6 @@ body {
 
 .battle-box__container {
   position: absolute;
-  opacity: 0;
   top: 0;
   width: 100%;
   height: calc(100% - 150px);

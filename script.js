@@ -212,13 +212,10 @@ const animate = () => {
                 onComplete() {
                   //Activate new animation loop
 
-                  gsap.to(".attack-grid", {
+                  gsap.to("#user-interface", {
                     opacity: 1,
                   });
 
-                  gsap.to(".battle-box__container", {
-                    opacity: 1,
-                  });
                   animateBattle();
                   gsap.to("#overlap", {
                     opacity: 0,

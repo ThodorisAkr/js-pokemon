@@ -85,6 +85,17 @@ class Monster extends Sprite {
     this.attacks = attacks;
   }
 
+  faint(){
+    const battleDialogEl = document.querySelector("#battleDialogBox");
+    battleDialogEl.innerHTML = `${this.name} fainted!`
+    gsap.to(this.position, {
+      y: this.position.y + 20, 
+    })
+    gsap.to(this, {
+      opacity: 0,
+    })
+  }
+
   attack({ attack, recipient, renderedSprites }) {
     const battleDialogEl = document.querySelector("#battleDialogBox");
     battleDialogEl.innerHTML = `<p>${this.name} used <span style="color: ${
@@ -110,6 +121,7 @@ class Monster extends Sprite {
   }
   tackle({ attack, recipient, healthCount }) {
     const tl = gsap.timeline();
+    recipient.health -= attack.damage;
 
     let movementDistance = 20;
     if (this.isEnemy) {
@@ -126,10 +138,8 @@ class Monster extends Sprite {
           //Enemy gets hit
 
           gsap.to(`#${healthCount}`, {
-            width: `${recipient.health - attack.damage}%`,
-            onComplete() {
-              recipient.health -= attack.damage;
-            },
+            width: `${recipient.health}%`,
+            
           });
           gsap.to(recipient.position, {
             x: recipient.position.x + 10,
@@ -152,6 +162,7 @@ class Monster extends Sprite {
 
   fireball({ attack, recipient, healthCount, renderedSprites }) {
     let rotation = 1;
+    recipient.health -= attack.damage;
     if (this.isEnemy) rotation = -2.2;
     const fireballImage = new Image();
     fireballImage.src = "./images/Battle/spells/fireball.png";
@@ -167,16 +178,14 @@ class Monster extends Sprite {
     });
 
     renderedSprites.splice(1, 0, fireball);
+
     gsap.to(fireball.position, {
       x: recipient.position.x,
       y: recipient.position.y,
       onComplete: () => {
         renderedSprites.splice(1, 1);
         gsap.to(`#${healthCount}`, {
-          width: `${recipient.health - attack.damage}%`,
-          onComplete() {
-            recipient.health -= attack.damage;
-          },
+          width: `${recipient.health}%`,
         });
         gsap.to(recipient.position, {
           x: recipient.position.x + 10,
