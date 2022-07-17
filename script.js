@@ -216,6 +216,7 @@ const animate = () => {
                     opacity: 1,
                   });
 
+                  initBattle();
                   animateBattle();
                   gsap.to("#overlap", {
                     opacity: 0,

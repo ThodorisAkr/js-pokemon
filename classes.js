@@ -8,13 +8,14 @@ class Sprite {
     rotation = 0,
   }) {
     this.position = position;
-    this.image = image;
     this.frames = { ...frames, val: 0, elapsed: 0 };
+    this.image = new Image();
 
     this.image.onload = () => {
       this.width = this.image.width / this.frames.max;
       this.height = this.image.height;
     };
+    this.image.src = image.src;
 
     this.animate = animate;
     this.sprites = sprites;
@@ -85,25 +86,30 @@ class Monster extends Sprite {
     this.attacks = attacks;
   }
 
-  faint(){
+  faint() {
     const battleDialogEl = document.querySelector("#battleDialogBox");
-    battleDialogEl.innerHTML = `${this.name} fainted!`
+    battleDialogEl.innerHTML = `${this.name} fainted!`;
     gsap.to(this.position, {
-      y: this.position.y + 20, 
-    })
+      y: this.position.y + 20,
+    });
     gsap.to(this, {
       opacity: 0,
-    })
+    });
   }
 
   attack({ attack, recipient, renderedSprites }) {
+    const damage =
+      Math.random() * (attack.damage.max - attack.damage.min) +
+      attack.damage.min;
     const battleDialogEl = document.querySelector("#battleDialogBox");
-    battleDialogEl.innerHTML = `<p>${this.name} used <span style="color: ${
-      attack.color
-    }">${attack.name}</span> for <span style="color: ${
-      attack.color
-    }">${parseInt(attack.damage)}</span> damage!`;
     battleDialogEl.style.display = "flex";
+    battleDialogEl.innerHTML = `<p>${this.isEnemy ? "Enemy's " : ""}${
+      this.name
+    } used <span style="color: ${attack.color}">${
+      attack.name
+    }</span> for <span style="color: ${attack.color}">${parseInt(
+      damage
+    )}</span> damage!`;
 
     let healthCount = "enemyHealthCount";
     if (this.isEnemy) {
@@ -112,16 +118,19 @@ class Monster extends Sprite {
 
     switch (attack.name) {
       case "Tackle":
-        this.tackle({ attack, recipient, healthCount });
+        this.tackle({ damage, recipient, healthCount });
         break;
       case "Fireball":
-        this.fireball({ attack, recipient, healthCount, renderedSprites });
+        this.fireball({ damage, recipient, healthCount, renderedSprites });
+        break;
+      case "Poison Dart":
+        this.poisonDart({ damage, recipient, healthCount, renderedSprites });
         break;
     }
   }
-  tackle({ attack, recipient, healthCount }) {
+  tackle({ damage, recipient, healthCount }) {
     const tl = gsap.timeline();
-    recipient.health -= attack.damage;
+    recipient.health -= damage;
 
     let movementDistance = 20;
     if (this.isEnemy) {
@@ -139,7 +148,6 @@ class Monster extends Sprite {
 
           gsap.to(`#${healthCount}`, {
             width: `${recipient.health}%`,
-            
           });
           gsap.to(recipient.position, {
             x: recipient.position.x + 10,
@@ -160,9 +168,10 @@ class Monster extends Sprite {
       });
   }
 
-  fireball({ attack, recipient, healthCount, renderedSprites }) {
+  fireball({ damage, recipient, healthCount, renderedSprites }) {
     let rotation = 1;
-    recipient.health -= attack.damage;
+
+    recipient.health -= damage;
     if (this.isEnemy) rotation = -2.2;
     const fireballImage = new Image();
     fireballImage.src = "./images/Battle/spells/fireball.png";
@@ -180,6 +189,50 @@ class Monster extends Sprite {
     renderedSprites.splice(1, 0, fireball);
 
     gsap.to(fireball.position, {
+      x: recipient.position.x,
+      y: recipient.position.y,
+      onComplete: () => {
+        renderedSprites.splice(1, 1);
+        gsap.to(`#${healthCount}`, {
+          width: `${recipient.health}%`,
+        });
+        gsap.to(recipient.position, {
+          x: recipient.position.x + 10,
+          repeat: 3,
+          yoyo: true,
+          duration: 0.1,
+        });
+        gsap.to(recipient, {
+          opacity: 0,
+          repeat: 3,
+          yoyo: true,
+          duration: 0.08,
+        });
+      },
+    });
+  }
+
+  poisonDart({ damage, recipient, healthCount, renderedSprites }) {
+    let rotation = -1;
+
+    recipient.health -= damage;
+    if (this.isEnemy) rotation = 2;
+    const poisonDartImage = new Image();
+    poisonDartImage.src = "./images/Battle/spells/poisondart.png";
+    const poisonDart = new Sprite({
+      position: {
+        x: this.position.x,
+        y: this.position.y,
+      },
+      image: poisonDartImage,
+      frames: { max: 4, hold: 5 },
+      animate: true,
+      rotation,
+    });
+
+    renderedSprites.splice(1, 0, poisonDart);
+
+    gsap.to(poisonDart.position, {
       x: recipient.position.x,
       y: recipient.position.y,
       onComplete: () => {

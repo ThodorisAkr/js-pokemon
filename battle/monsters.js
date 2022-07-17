@@ -1,8 +1,6 @@
-const draggleImage = new Image();
-draggleImage.src = "./images/Battle/monsters/draggleSprite.png";
-
-const embyImage = new Image();
-embyImage.src = "./images/Battle/monsters/embySprite.png";
+draggleImage = "./images/Battle/monsters/draggleSprite.png";
+embyImage = "./images/Battle/monsters/embySprite.png";
+mushroomImage = "./images/Battle/monsters/mushroomSprite.png";
 
 const monsters = {
   emby: {
@@ -11,7 +9,9 @@ const monsters = {
       x: 0,
       y: 0,
     },
-    image: embyImage,
+    image: {
+      src: embyImage,
+    },
     frames: {
       max: 4,
       hold: 10,
@@ -26,12 +26,30 @@ const monsters = {
       x: 0,
       y: 0,
     },
-    image: draggleImage,
+    image: {
+      src: draggleImage,
+    },
     frames: {
       max: 4,
       hold: 30,
     },
     animate: true,
-    attacks: [attacks.tackle, attacks.fireball],
+    attacks: [attacks.tackle, attacks.poisondart],
+  },
+  mushroom: {
+    name: "Mushroom",
+    position: {
+      x: 0,
+      y: 0,
+    },
+    image: {
+      src: mushroomImage,
+    },
+    frames: {
+      max: 4,
+      hold: 30,
+    },
+    animate: true,
+    attacks: [attacks.tackle, attacks.poisondart],
   },
 };

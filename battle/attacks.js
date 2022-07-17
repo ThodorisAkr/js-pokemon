@@ -1,24 +1,31 @@
-const generalAttacks = {
-  run: {
-    name: "Run",
-    damage: 0,
-    type: "Run",
-    color: "black",
-  },
-};
-
 const attacks = {
   tackle: {
     name: "Tackle",
-    damage: Math.random() * (20 - 15) + 15,
+    damage: {
+      min: 15,
+      max: 15,
+    },
     type: "Normal",
     color: "black",
   },
 
   fireball: {
     name: "Fireball",
-    damage: Math.random() * (30 - 20) + 20,
+    damage: {
+      min: 20,
+      max: 25,
+    },
     type: "Fire",
     color: "red",
+  },
+
+  poisondart: {
+    name: "Poison Dart",
+    damage: {
+      min: 18,
+      max: 22,
+    },
+    type: "Poison",
+    color: "green",
   },
 };
